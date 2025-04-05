@@ -54,6 +54,45 @@ spec:
                 description: Allow the Operator to match this resource with Grafanas
                   outside the current namespace
                 type: boolean
+              configMapRef:
+                description: model from configmap
+                properties:
+                  key:
+                    description: The key to select.
+                    type: string
+                  name:
+                    default: ""
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                  optional:
+                    description: Specify whether the ConfigMap or its key must be
+                      defined
+                    type: boolean
+                required:
+                - key
+                type: object
+                x-kubernetes-map-type: atomic
+              datasources:
+                description: maps required data sources to existing ones
+                items:
+                  description: |-
+                    GrafanaResourceDatasource is used to set the datasource name of any templated datasources in
+                    content definitions (e.g., dashboard JSON).
+                  properties:
+                    datasourceName:
+                      type: string
+                    inputName:
+                      type: string
+                  required:
+                  - datasourceName
+                  - inputName
+                  type: object
+                type: array
               editable:
                 description: Whether to enable or disable editing of the alert rule
                   group in Grafana UI
@@ -61,6 +100,124 @@ spec:
                 x-kubernetes-validations:
                 - message: Value is immutable
                   rule: self == oldSelf
+              envFrom:
+                description: environments variables from secrets or config maps
+                items:
+                  properties:
+                    configMapKeyRef:
+                      description: Selects a key of a ConfigMap.
+                      properties:
+                        key:
+                          description: The key to select.
+                          type: string
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the ConfigMap or its key must
+                            be defined
+                          type: boolean
+                      required:
+                      - key
+                      type: object
+                      x-kubernetes-map-type: atomic
+                    secretKeyRef:
+                      description: Selects a key of a Secret.
+                      properties:
+                        key:
+                          description: The key of the secret to select from.  Must
+                            be a valid secret key.
+                          type: string
+                        name:
+                          default: ""
+                          description: |-
+                            Name of the referent.
+                            This field is effectively required, but due to backwards compatibility is
+                            allowed to be empty. Instances of this type with an empty value here are
+                            almost certainly wrong.
+                            More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                          type: string
+                        optional:
+                          description: Specify whether the Secret or its key must
+                            be defined
+                          type: boolean
+                      required:
+                      - key
+                      type: object
+                      x-kubernetes-map-type: atomic
+                  type: object
+                type: array
+              envs:
+                description: environments variables as a map
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      description: Inline env value
+                      type: string
+                    valueFrom:
+                      description: Reference on value source, might be the reference
+                        on a secret or config map
+                      properties:
+                        configMapKeyRef:
+                          description: Selects a key of a ConfigMap.
+                          properties:
+                            key:
+                              description: The key to select.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the ConfigMap or its key
+                                must be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        secretKeyRef:
+                          description: Selects a key of a Secret.
+                          properties:
+                            key:
+                              description: The key of the secret to select from.  Must
+                                be a valid secret key.
+                              type: string
+                            name:
+                              default: ""
+                              description: |-
+                                Name of the referent.
+                                This field is effectively required, but due to backwards compatibility is
+                                allowed to be empty. Instances of this type with an empty value here are
+                                almost certainly wrong.
+                                More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                              type: string
+                            optional:
+                              description: Specify whether the Secret or its key must
+                                be defined
+                              type: boolean
+                          required:
+                          - key
+                          type: object
+                          x-kubernetes-map-type: atomic
+                      type: object
+                  required:
+                  - name
+                  type: object
+                type: array
               folderRef:
                 description: Match GrafanaFolders CRs to infer the uid
                 type: string
@@ -273,8 +430,12 @@ spec:
               rule: '!oldSelf.allowCrossNamespaceImport || (oldSelf.allowCrossNamespaceImport
                 && self.allowCrossNamespaceImport)'
           status:
-            description: The most recent observed state of a Grafana resource
+            description: GrafanaAlertRuleGroupStatus defines the observed state of
+              GrafanaAlertRuleGroup
             properties:
+              NoMatchingInstances:
+                description: The instanceSelector can't find matching grafana instances
+                type: boolean
               conditions:
                 description: Results when synchonizing resource with Grafana instances
                 items:
@@ -332,10 +493,22 @@ spec:
                   - type
                   type: object
                 type: array
+              contentCache:
+                format: byte
+                type: string
+              contentTimestamp:
+                format: date-time
+                type: string
+              contentUrl:
+                type: string
+              hash:
+                type: string
               lastResync:
                 description: Last time the resource was synchronized with Grafana
                   instances
                 format: date-time
+                type: string
+              uid:
                 type: string
             type: object
         required:

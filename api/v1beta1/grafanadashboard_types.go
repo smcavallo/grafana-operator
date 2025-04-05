@@ -119,7 +119,7 @@ func (in *GrafanaDashboard) GrafanaContentSpec() *GrafanaContentSpec {
 	return &in.Spec.GrafanaContentSpec
 }
 
-// GrafanaContentSpec implements GrafanaContentResource
+// GrafanaContentStatus implements GrafanaContentResource
 func (in *GrafanaDashboard) GrafanaContentStatus() *GrafanaContentStatus {
 	return &in.Status.GrafanaContentStatus
 }

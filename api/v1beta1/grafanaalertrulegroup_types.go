@@ -29,6 +29,8 @@ import (
 type GrafanaAlertRuleGroupSpec struct {
 	GrafanaCommonSpec `json:",inline"`
 
+	GrafanaAlertContentSpec `json:",inline"`
+
 	// +optional
 	// Name of the alert rule group. If not specified, the resource name will be used.
 	Name string `json:"name,omitempty"`
@@ -129,6 +131,15 @@ type AlertQuery struct {
 	RelativeTimeRange *models.RelativeTimeRange `json:"relativeTimeRange,omitempty"`
 }
 
+// GrafanaAlertRuleGroupStatus defines the observed state of GrafanaAlertRuleGroup
+type GrafanaAlertRuleGroupStatus struct {
+	GrafanaCommonStatus       `json:",inline"`
+	GrafanaAlertContentStatus `json:",inline"`
+
+	// The instanceSelector can't find matching grafana instances
+	NoMatchingInstances bool `json:"NoMatchingInstances,omitempty"`
+}
+
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
@@ -140,8 +151,16 @@ type GrafanaAlertRuleGroup struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   GrafanaAlertRuleGroupSpec `json:"spec"`
-	Status GrafanaCommonStatus       `json:"status,omitempty"`
+	Spec   GrafanaAlertRuleGroupSpec   `json:"spec"`
+	Status GrafanaAlertRuleGroupStatus `json:"status,omitempty"`
+}
+
+func (in *GrafanaAlertRuleGroup) GrafanaAlertContentSpec() *GrafanaAlertContentSpec {
+	return &in.Spec.GrafanaAlertContentSpec
+}
+
+func (in *GrafanaAlertRuleGroup) GrafanaAlertContentStatus() *GrafanaAlertContentStatus {
+	return &in.Status.GrafanaAlertContentStatus
 }
 
 // GroupName returns the name of alert rule group.
